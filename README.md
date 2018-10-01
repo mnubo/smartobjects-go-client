@@ -1,0 +1,1 @@
+# smartobjects-go-client
