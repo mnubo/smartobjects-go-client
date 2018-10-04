@@ -11,13 +11,13 @@ func TestClient(t *testing.T) {
 
 	at, err := m.getAccessToken()
 	if err != nil {
-		t.Errorf("Unable to get access token: %s", err)
+		t.Errorf("unable to get access token: %s", err)
 	}
 	if at.ExpiresIn <= 0 {
-		t.Errorf("Access Token expiration timestamp is invalid %+v", at)
+		t.Errorf("access token expiration timestamp is invalid %+v", at)
 	}
 
 	if n.ClientToken != "TOKEN" || n.Host != "HOST" {
-		t.Errorf("Creating client with token should set ClientToken and Host: %+v", n)
+		t.Errorf("creating client with token should set ClientToken and Host: %+v", n)
 	}
 }

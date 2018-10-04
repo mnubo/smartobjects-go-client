@@ -111,7 +111,7 @@ func (m *Mnubo) doRequest(cr ClientRequest) ([]byte, error) {
 		return body, nil
 	}
 
-	return nil, fmt.Errorf("Request Error: %s", body)
+	return nil, fmt.Errorf("request Error: %s", body)
 }
 
 func (m *Mnubo) doRequestWithAuthentication(cr ClientRequest, response interface{}) error {
