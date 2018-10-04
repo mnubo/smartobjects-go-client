@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+.travis/check_go_fmt && go test -v ./...
