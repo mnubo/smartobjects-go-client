@@ -26,7 +26,6 @@ type SearchResults struct {
 
 func TestCreateQuery(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
-	m.getAccessToken()
 
 	var results = [2]SearchResults{}
 	cases := []struct {
@@ -67,7 +66,6 @@ func TestCreateQuery(t *testing.T) {
 
 func TestValidateQuery(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
-	m.getAccessToken()
 
 	var results = [2]QueryValidation{}
 	cases := []struct {
@@ -108,7 +106,6 @@ func TestValidateQuery(t *testing.T) {
 
 func TestDatasets(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
-	m.getAccessToken()
 
 	var results = [1][]Dataset{}
 	cases := []struct {

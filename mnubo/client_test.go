@@ -3,6 +3,7 @@ package mnubo
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 func TestClient(t *testing.T) {
@@ -10,6 +11,8 @@ func TestClient(t *testing.T) {
 	n := NewClientWithToken("TOKEN", "HOST")
 
 	at, err := m.getAccessToken()
+	now := time.Now()
+
 	if err != nil {
 		t.Errorf("unable to get access token: %s", err)
 	}
@@ -19,5 +22,44 @@ func TestClient(t *testing.T) {
 
 	if n.ClientToken != "TOKEN" || n.Host != "HOST" {
 		t.Errorf("creating client with token should set ClientToken and Host: %+v", n)
+	}
+
+	if at.ExpiresAt.Before(now) {
+		t.Errorf("access token expiration time %s should be in after now %s", at.ExpiresAt, now)
+	}
+
+	at.ExpiresAt = time.Now()
+	m.AccessToken = at
+}
+
+func TestAccessToken(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+	at, _ := m.getAccessToken()
+	now := time.Now()
+
+	if m.AccessToken.hasExpired() == true {
+		t.Errorf("access token should not expire so soon")
+	}
+
+	firstTokenValue := m.AccessToken.Value
+	eat := at
+	eat.ExpiresAt = now
+	m.AccessToken = eat
+
+	if m.AccessToken.hasExpired() == false {
+		t.Errorf("access token should expire after a while")
+	}
+
+	var results interface{}
+	cr := ClientRequest{
+		method: "GET",
+		path:   "test",
+	}
+
+	m.doRequestWithAuthentication(cr, &results)
+	secondTokenValue := m.AccessToken.Value
+
+	if firstTokenValue == secondTokenValue {
+		t.Errorf("authentication should re-fetch token after expiration")
 	}
 }

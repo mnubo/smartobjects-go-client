@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 type CompressionConfig struct {
@@ -35,8 +36,14 @@ type AccessToken struct {
 	Value     string `json:"access_token"`
 	TokenType string `json:"token_type"`
 	ExpiresIn int    `json:"expires_in"`
+	ExpiresAt time.Time
 	Scope     string `json:"scope"`
 	Jti       string `json:"jti"`
+}
+
+func (at *AccessToken) hasExpired() bool {
+	now := time.Now()
+	return at.ExpiresAt.Before(now)
 }
 
 func NewClient(id string, secret string, host string) *Mnubo {
@@ -52,6 +59,10 @@ func NewClientWithToken(token string, host string) *Mnubo {
 		ClientToken: token,
 		Host:        host,
 	}
+}
+
+func (m *Mnubo) isUsingStaticToken() bool {
+	return m.ClientToken != ""
 }
 
 func (m *Mnubo) getAccessToken() (AccessToken, error) {
@@ -71,9 +82,15 @@ func (m *Mnubo) getAccessTokenWithScope(scope string) (AccessToken, error) {
 	}
 	at := AccessToken{}
 	body, err := m.doRequest(cr)
+	now := time.Now()
 
 	if err == nil {
 		err = json.Unmarshal(body, &at)
+		if err != nil {
+			return at, fmt.Errorf("unable to unmarshall body %t", err)
+		}
+		dur, err := time.ParseDuration(fmt.Sprintf("%dms", at.ExpiresIn))
+		at.ExpiresAt = now.Add(dur)
 		m.AccessToken = at
 		return at, err
 	}
@@ -115,9 +132,16 @@ func (m *Mnubo) doRequest(cr ClientRequest) ([]byte, error) {
 }
 
 func (m *Mnubo) doRequestWithAuthentication(cr ClientRequest, response interface{}) error {
-	if m.ClientToken != "" {
+	if m.isUsingStaticToken() {
 		cr.authorization = fmt.Sprintf("Bearer %s", m.ClientToken)
 	} else {
+		if m.AccessToken.hasExpired() {
+			_, err := m.getAccessToken()
+
+			if err != nil {
+				return err
+			}
+		}
 		cr.authorization = fmt.Sprintf("Bearer %s", m.AccessToken.Value)
 	}
 
