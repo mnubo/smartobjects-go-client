@@ -63,3 +63,27 @@ func TestAccessToken(t *testing.T) {
 		t.Errorf("authentication should re-fetch token after expiration")
 	}
 }
+
+func TestCompression(t *testing.T) {
+	var results SearchResults
+
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+
+	compression := CompressionConfig{
+		Request:  true,
+		Response: true,
+	}
+	m.Compression = compression
+
+	err := m.createBasicQueryWithString(`{ "from": "event", "select": [ { "count": "*" } ] }`, &results)
+
+	if err != nil {
+		t.Errorf("error while running the query: %t", err)
+	}
+
+	if len(results.Rows) != 1 || len(results.Rows[0]) != 1 {
+		t.Errorf("expecting results to have a count in firt row and cell")
+	}
+
+	t.Logf("%+v", results)
+}
