@@ -32,7 +32,7 @@ func TestCreateQuery(t *testing.T) {
 		Error error
 	}{
 		{
-			Error: m.createBasicQuery(SimpleQuery{
+			Error: m.CreateBasicQuery(SimpleQuery{
 				From: "event",
 				Select: []SelectOperation{
 					{
@@ -42,7 +42,7 @@ func TestCreateQuery(t *testing.T) {
 			}, &results[0]),
 		},
 		{
-			Error: m.createBasicQueryWithString(`
+			Error: m.CreateBasicQueryWithString(`
 				{
 				    "from": "event",
 				    "select": [
@@ -72,7 +72,7 @@ func TestValidateQuery(t *testing.T) {
 		Error error
 	}{
 		{
-			Error: m.validateQuery(SimpleQuery{
+			Error: m.ValidateQuery(SimpleQuery{
 				From: "event",
 				Select: []SelectOperation{
 					{
@@ -82,7 +82,7 @@ func TestValidateQuery(t *testing.T) {
 			}, &results[0]),
 		},
 		{
-			Error: m.validateQueryWithString(`
+			Error: m.ValidateQueryWithString(`
 				{
 				    "from": "event",
 				    "select": [
@@ -112,7 +112,7 @@ func TestDatasets(t *testing.T) {
 		Error error
 	}{
 		{
-			Error: m.getDatasets(&results[0]),
+			Error: m.GetDatasets(&results[0]),
 		},
 	}
 

@@ -10,7 +10,7 @@ func TestClient(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
 	n := NewClientWithToken("TOKEN", "HOST")
 
-	at, err := m.getAccessToken()
+	at, err := m.GetAccessToken()
 	now := time.Now()
 
 	if err != nil {
@@ -34,7 +34,7 @@ func TestClient(t *testing.T) {
 
 func TestAccessToken(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
-	at, _ := m.getAccessToken()
+	at, _ := m.GetAccessToken()
 	now := time.Now()
 
 	if m.AccessToken.hasExpired() == true {
@@ -62,4 +62,28 @@ func TestAccessToken(t *testing.T) {
 	if firstTokenValue == secondTokenValue {
 		t.Errorf("authentication should re-fetch token after expiration")
 	}
+}
+
+func TestCompression(t *testing.T) {
+	var results SearchResults
+
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+
+	compression := CompressionConfig{
+		Request:  true,
+		Response: true,
+	}
+	m.Compression = compression
+
+	err := m.CreateBasicQueryWithString(`{ "from": "event", "select": [ { "count": "*" } ] }`, &results)
+
+	if err != nil {
+		t.Errorf("error while running the query: %t", err)
+	}
+
+	if len(results.Rows) != 1 || len(results.Rows[0]) != 1 {
+		t.Errorf("expecting results to have a count in firt row and cell")
+	}
+
+	t.Logf("%+v", results)
 }

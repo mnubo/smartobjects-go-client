@@ -2,17 +2,19 @@ package mnubo
 
 import (
 	"bytes"
+	gzip "compress/gzip"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
 )
 
 type CompressionConfig struct {
-	request  bool
-	response bool
+	Request  bool
+	Response bool
 }
 
 type Mnubo struct {
@@ -25,11 +27,12 @@ type Mnubo struct {
 }
 
 type ClientRequest struct {
-	authorization string
-	method        string
-	path          string
-	contentType   string
-	payload       []byte
+	authorization   string
+	method          string
+	path            string
+	contentType     string
+	payload         []byte
+	skipCompression bool
 }
 
 type AccessToken struct {
@@ -65,20 +68,21 @@ func (m *Mnubo) isUsingStaticToken() bool {
 	return m.ClientToken != ""
 }
 
-func (m *Mnubo) getAccessToken() (AccessToken, error) {
-	return m.getAccessTokenWithScope("ALL")
+func (m *Mnubo) GetAccessToken() (AccessToken, error) {
+	return m.GetAccessTokenWithScope("ALL")
 }
 
-func (m *Mnubo) getAccessTokenWithScope(scope string) (AccessToken, error) {
+func (m *Mnubo) GetAccessTokenWithScope(scope string) (AccessToken, error) {
 	payload := fmt.Sprintf("grant_type=client_credentials&scope=%s", scope)
 	data := []byte(fmt.Sprintf("%s:%s", m.ClientId, m.ClientSecret))
 
 	cr := ClientRequest{
-		authorization: fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString(data)),
-		method:        "POST",
-		path:          "/oauth/token",
-		contentType:   "application/x-www-form-urlencoded",
-		payload:       []byte(payload),
+		authorization:   fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString(data)),
+		method:          "POST",
+		path:            "/oauth/token",
+		contentType:     "application/x-www-form-urlencoded",
+		skipCompression: true,
+		payload:         []byte(payload),
 	}
 	at := AccessToken{}
 	body, err := m.doRequest(cr)
@@ -97,8 +101,52 @@ func (m *Mnubo) getAccessTokenWithScope(scope string) (AccessToken, error) {
 	return at, err
 }
 
+func doGzip(w io.Writer, data []byte) error {
+	gw, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
+	if err != nil {
+		return err
+	}
+	if _, err := gw.Write(data); err != nil {
+		return err
+	}
+	if err := gw.Flush(); err != nil {
+		return err
+	}
+	if err := gw.Close(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func doGunzip(w io.Writer, data []byte) error {
+	gr, err := gzip.NewReader(bytes.NewBuffer(data))
+	defer gr.Close()
+	if err != nil {
+		return err
+	}
+	ud, err := ioutil.ReadAll(gr)
+	if err != nil {
+		return err
+	}
+	w.Write(ud)
+	return nil
+}
+
 func (m *Mnubo) doRequest(cr ClientRequest) ([]byte, error) {
-	req, err := http.NewRequest(cr.method, m.Host+cr.path, bytes.NewReader(cr.payload))
+	var payload []byte
+
+	if m.Compression.Request && !cr.skipCompression {
+		var w bytes.Buffer
+		err := doGzip(&w, cr.payload)
+		if err != nil {
+			return nil, fmt.Errorf("unable to gzip request: %t", err)
+		}
+		payload = w.Bytes()
+	} else {
+		payload = cr.payload
+	}
+
+	req, err := http.NewRequest(cr.method, m.Host+cr.path, bytes.NewReader(payload))
 
 	req.Header.Add("Content-Type", cr.contentType)
 	req.Header.Add("X-MNUBO-SDK", "Go")
@@ -107,23 +155,40 @@ func (m *Mnubo) doRequest(cr ClientRequest) ([]byte, error) {
 		req.Header.Add("Authorization", cr.authorization)
 	}
 
+	if m.Compression.Request {
+		req.Header.Add("Content-Encoding", "gzip")
+	}
+
+	if m.Compression.Response {
+		req.Header.Add("Accept-Encoding", "gzip")
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
 	client := &http.Client{}
-
 	res, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to send client request: %t", err)
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	var body []byte
+	body, err = ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to read response body: %t", err)
 	}
+	if res.Header.Get("Content-Encoding") == "gzip" {
+		var w bytes.Buffer
+		err := doGunzip(&w, body)
 
+		if err != nil {
+			return nil, fmt.Errorf("unable to gunzip response: %t", err)
+		}
+
+		body = w.Bytes()
+	}
 	if res.StatusCode >= http.StatusOK && res.StatusCode < http.StatusMultipleChoices {
 		return body, nil
 	}
@@ -136,7 +201,7 @@ func (m *Mnubo) doRequestWithAuthentication(cr ClientRequest, response interface
 		cr.authorization = fmt.Sprintf("Bearer %s", m.ClientToken)
 	} else {
 		if m.AccessToken.hasExpired() {
-			_, err := m.getAccessToken()
+			_, err := m.GetAccessToken()
 
 			if err != nil {
 				return err

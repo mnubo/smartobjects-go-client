@@ -28,21 +28,21 @@ type QueryValidation struct {
 	ValidationErrors []string `json:"validationErrors"`
 }
 
-func (m *Mnubo) createBasicQuery(mql interface{}, results interface{}) error {
+func (m *Mnubo) CreateBasicQuery(mql interface{}, results interface{}) error {
 	payload, err := json.Marshal(mql)
 
 	if err != nil {
 		return fmt.Errorf("unable to marshal the mql: %s (%s)", mql, err)
 	}
 
-	return m.createBasicQueryWithBytes(payload, results)
+	return m.CreateBasicQueryWithBytes(payload, results)
 }
 
-func (m *Mnubo) createBasicQueryWithString(mql string, results interface{}) error {
-	return m.createBasicQueryWithBytes([]byte(mql), results)
+func (m *Mnubo) CreateBasicQueryWithString(mql string, results interface{}) error {
+	return m.CreateBasicQueryWithBytes([]byte(mql), results)
 }
 
-func (m *Mnubo) createBasicQueryWithBytes(mql []byte, results interface{}) error {
+func (m *Mnubo) CreateBasicQueryWithBytes(mql []byte, results interface{}) error {
 	cr := ClientRequest{
 		method:      "POST",
 		contentType: "application/json",
@@ -53,21 +53,21 @@ func (m *Mnubo) createBasicQueryWithBytes(mql []byte, results interface{}) error
 	return m.doRequestWithAuthentication(cr, results)
 }
 
-func (m *Mnubo) validateQuery(mql interface{}, results *QueryValidation) error {
+func (m *Mnubo) ValidateQuery(mql interface{}, results *QueryValidation) error {
 	payload, err := json.Marshal(mql)
 
 	if err != nil {
 		return fmt.Errorf("unable to marshal the mql: %s (%s)", mql, err)
 	}
 
-	return m.validateQueryWithBytes(payload, results)
+	return m.ValidateQueryWithBytes(payload, results)
 }
 
-func (m *Mnubo) validateQueryWithString(mql string, results *QueryValidation) error {
-	return m.validateQueryWithBytes([]byte(mql), results)
+func (m *Mnubo) ValidateQueryWithString(mql string, results *QueryValidation) error {
+	return m.ValidateQueryWithBytes([]byte(mql), results)
 }
 
-func (m *Mnubo) validateQueryWithBytes(mql []byte, results *QueryValidation) error {
+func (m *Mnubo) ValidateQueryWithBytes(mql []byte, results *QueryValidation) error {
 	cr := ClientRequest{
 		method:      "POST",
 		contentType: "application/json",
@@ -78,7 +78,7 @@ func (m *Mnubo) validateQueryWithBytes(mql []byte, results *QueryValidation) err
 	return m.doRequestWithAuthentication(cr, results)
 }
 
-func (m *Mnubo) getDatasets(results *[]Dataset) error {
+func (m *Mnubo) GetDatasets(results *[]Dataset) error {
 	cr := ClientRequest{
 		method:      "GET",
 		contentType: "application/json",
