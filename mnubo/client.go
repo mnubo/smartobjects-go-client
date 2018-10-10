@@ -27,6 +27,7 @@ type Mnubo struct {
 	Compression  CompressionConfig
 	Events       *Events
 	Objects      *Objects
+	Owners       *Owners
 }
 
 type ClientRequest struct {
@@ -72,9 +73,10 @@ func NewClientWithToken(token string, host string) *Mnubo {
 	return m
 }
 
-func (m* Mnubo) initClient() {
+func (m *Mnubo) initClient() {
 	m.Events = NewEvents(*m)
 	m.Objects = NewObjects(*m)
+	m.Owners = NewOwners(*m)
 }
 
 func (m *Mnubo) isUsingStaticToken() bool {
@@ -144,7 +146,7 @@ func doGunzip(w io.Writer, data []byte) error {
 	return nil
 }
 
-func (m *Mnubo) doRequest(cr ClientRequest, response interface{}) (error) {
+func (m *Mnubo) doRequest(cr ClientRequest, response interface{}) error {
 	var payload []byte
 
 	if m.Compression.Request && !cr.skipCompression {

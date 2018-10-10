@@ -24,6 +24,10 @@ type SimpleObject struct {
 	XObjectType string `json:"x_object_type"`
 }
 
+type SimpleOwner struct {
+	Username string `json:"username"`
+}
+
 func TestEvents(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
 
@@ -232,6 +236,123 @@ func TestObjects_Exist(t *testing.T) {
 
 	var results EventsExist
 	err := m.Objects.Exist([]string{id}, &results)
+
+	if err != nil {
+		t.Errorf("client call failed: %+v", err)
+	}
+}
+
+func TestOwners_Create(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+	id := uuid.New().String()
+
+	o := SimpleOwner{
+		Username: id,
+	}
+	var results interface{}
+	err := m.Owners.Create(o, &results)
+
+	if err != nil {
+		t.Errorf("client call failed: %+v", err)
+	}
+}
+
+func TestOwners_Update(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+	id := uuid.New().String()
+
+	o := []SimpleOwner{
+		{
+			Username: id,
+		},
+	}
+	var results interface{}
+	err := m.Owners.Update(o, &results)
+
+	if err != nil {
+		t.Errorf("client call failed: %+v", err)
+	}
+}
+
+func TestOwners_UpdateOwnerPassword(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+	id := uuid.New().String()
+
+	o := SimpleOwner{
+		Username: id,
+	}
+	var results interface{}
+	e1, e2 := m.Owners.Create(o, &results), m.Owners.UpdateOwnerPassword(id, "test")
+
+	if e1 != nil {
+		t.Errorf("client call failed: %+v", e1)
+	}
+
+	if e2 != nil {
+		t.Errorf("client call failed: %+v", e2)
+	}
+
+}
+
+func TestOwners_Delete(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+	id := uuid.New().String()
+
+	o := SimpleOwner{
+		Username: id,
+	}
+	var results interface{}
+	e1, e2 := m.Owners.Create(o, &results), m.Owners.Delete(id)
+
+	if e1 != nil {
+		t.Errorf("client call failed: %+v", e1)
+	}
+
+	if e2 != nil {
+		t.Errorf("client call failed: %+v", e2)
+	}
+}
+
+func TestOwners_Exist(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+	id := uuid.New().String()
+
+	var results EventsExist
+	err := m.Owners.Exist([]string{id}, &results)
+
+	if err != nil {
+		t.Errorf("client call failed: %+v", err)
+	}
+}
+
+func TestOwners_Claim(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+	ob, ow := uuid.New().String(), uuid.New().String()
+
+	var results []ClaimResult
+	err := m.Owners.Claim([]ObjectOwnerPair{
+		{
+			XDeviceID: ob,
+			Username:  ow,
+		},
+	}, &results)
+
+	if err != nil {
+		t.Errorf("client call failed: %+v", err)
+	}
+}
+
+func TestOwners_Unclaim(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+	ob, ow := uuid.New().String(), uuid.New().String()
+
+	var results []ClaimResult
+	err := m.Owners.Unclaim([]ObjectOwnerPair{
+		{
+			XDeviceID: ob,
+			Username:  ow,
+		},
+	}, &results)
 
 	if err != nil {
 		t.Errorf("client call failed: %+v", err)
