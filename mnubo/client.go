@@ -25,6 +25,7 @@ type Mnubo struct {
 	Host         string
 	AccessToken  AccessToken
 	Compression  CompressionConfig
+	Events       *Events
 }
 
 type ClientRequest struct {
@@ -52,18 +53,26 @@ func (at *AccessToken) hasExpired() bool {
 }
 
 func NewClient(id string, secret string, host string) *Mnubo {
-	return &Mnubo{
+	m := &Mnubo{
 		ClientId:     id,
 		ClientSecret: secret,
 		Host:         host,
 	}
+	m.initClient()
+	return m
 }
 
 func NewClientWithToken(token string, host string) *Mnubo {
-	return &Mnubo{
+	m := &Mnubo{
 		ClientToken: token,
 		Host:        host,
 	}
+	m.initClient()
+	return m
+}
+
+func (m* Mnubo) initClient() {
+	m.Events = NewEvents(*m)
 }
 
 func (m *Mnubo) isUsingStaticToken() bool {
