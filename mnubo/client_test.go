@@ -84,6 +84,4 @@ func TestCompression(t *testing.T) {
 	if len(results.Rows) != 1 || len(results.Rows[0]) != 1 {
 		t.Errorf("expecting results to have a count in firt row and cell")
 	}
-
-	t.Logf("%+v", results)
 }
