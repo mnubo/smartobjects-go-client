@@ -10,7 +10,7 @@ func TestClient(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
 	n := NewClientWithToken("TOKEN", "HOST")
 
-	at, err := m.getAccessToken()
+	at, err := m.GetAccessToken()
 	now := time.Now()
 
 	if err != nil {
@@ -34,7 +34,7 @@ func TestClient(t *testing.T) {
 
 func TestAccessToken(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
-	at, _ := m.getAccessToken()
+	at, _ := m.GetAccessToken()
 	now := time.Now()
 
 	if m.AccessToken.hasExpired() == true {
@@ -75,7 +75,7 @@ func TestCompression(t *testing.T) {
 	}
 	m.Compression = compression
 
-	err := m.createBasicQueryWithString(`{ "from": "event", "select": [ { "count": "*" } ] }`, &results)
+	err := m.CreateBasicQueryWithString(`{ "from": "event", "select": [ { "count": "*" } ] }`, &results)
 
 	if err != nil {
 		t.Errorf("error while running the query: %t", err)

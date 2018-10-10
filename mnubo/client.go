@@ -68,11 +68,11 @@ func (m *Mnubo) isUsingStaticToken() bool {
 	return m.ClientToken != ""
 }
 
-func (m *Mnubo) getAccessToken() (AccessToken, error) {
-	return m.getAccessTokenWithScope("ALL")
+func (m *Mnubo) GetAccessToken() (AccessToken, error) {
+	return m.GetAccessTokenWithScope("ALL")
 }
 
-func (m *Mnubo) getAccessTokenWithScope(scope string) (AccessToken, error) {
+func (m *Mnubo) GetAccessTokenWithScope(scope string) (AccessToken, error) {
 	payload := fmt.Sprintf("grant_type=client_credentials&scope=%s", scope)
 	data := []byte(fmt.Sprintf("%s:%s", m.ClientId, m.ClientSecret))
 
@@ -201,7 +201,7 @@ func (m *Mnubo) doRequestWithAuthentication(cr ClientRequest, response interface
 		cr.authorization = fmt.Sprintf("Bearer %s", m.ClientToken)
 	} else {
 		if m.AccessToken.hasExpired() {
-			_, err := m.getAccessToken()
+			_, err := m.GetAccessToken()
 
 			if err != nil {
 				return err
