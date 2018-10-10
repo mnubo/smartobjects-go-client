@@ -28,6 +28,16 @@ type QueryValidation struct {
 	ValidationErrors []string `json:"validationErrors"`
 }
 
+type SearchResultsColumn struct {
+	Label string `json:"label"`
+	Type  string `json:"type"`
+}
+
+type SearchResults struct {
+	Columns []SearchResultsColumn `json:"columns"`
+	Rows    [][]interface{}       `json:"rows"`
+}
+
 func (m *Mnubo) CreateBasicQuery(mql interface{}, results interface{}) error {
 	payload, err := json.Marshal(mql)
 
