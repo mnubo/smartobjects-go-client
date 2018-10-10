@@ -26,6 +26,7 @@ type Mnubo struct {
 	AccessToken  AccessToken
 	Compression  CompressionConfig
 	Events       *Events
+	Objects      *Objects
 }
 
 type ClientRequest struct {
@@ -73,6 +74,7 @@ func NewClientWithToken(token string, host string) *Mnubo {
 
 func (m* Mnubo) initClient() {
 	m.Events = NewEvents(*m)
+	m.Objects = NewObjects(*m)
 }
 
 func (m *Mnubo) isUsingStaticToken() bool {

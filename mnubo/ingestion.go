@@ -15,6 +15,10 @@ type Events struct {
 	Mnubo Mnubo
 }
 
+type Objects struct {
+	Mnubo Mnubo
+}
+
 type SendEventsOptions struct {
 	ReportResults    bool
 	ObjectsMustExist bool
@@ -30,6 +34,12 @@ type EventsExist []map[string]bool
 
 func NewEvents(m Mnubo) *Events {
 	return &Events{
+		Mnubo: m,
+	}
+}
+
+func NewObjects(m Mnubo) *Objects {
+	return &Objects{
 		Mnubo: m,
 	}
 }
@@ -95,4 +105,65 @@ func (e *Events) Exists(eventIds []string, results interface{}) error {
 	}
 
 	return e.Mnubo.doRequestWithAuthentication(cr, results)
+}
+
+func (o *Objects) Create(objects interface{}, results interface{}) error {
+	bytes, err := json.Marshal(objects)
+
+	if err != nil {
+		return err
+	}
+
+	cr := ClientRequest{
+		method:      "POST",
+		contentType: "application/json",
+		path:        fmt.Sprintf("%s", objectsPath),
+		payload:     bytes,
+	}
+
+	return o.Mnubo.doRequestWithAuthentication(cr, results)
+}
+
+func (o *Objects) Update(objects interface{}, results interface{}) error {
+	bytes, err := json.Marshal(objects)
+
+	if err != nil {
+		return err
+	}
+
+	cr := ClientRequest{
+		method:      "PUT",
+		contentType: "application/json",
+		path:        fmt.Sprintf("%s", objectsPath),
+		payload:     bytes,
+	}
+
+	return o.Mnubo.doRequestWithAuthentication(cr, results)
+}
+
+func (o *Objects) Delete(deviceId string) error {
+	cr := ClientRequest{
+		method:      "DELETE",
+		path:        fmt.Sprintf("%s/%s", objectsPath, deviceId),
+	}
+
+	var results interface{}
+	return o.Mnubo.doRequestWithAuthentication(cr, &results)
+}
+
+func (o *Objects) Exist(deviceIds []string, results *EventsExist) error {
+	bytes, err := json.Marshal(deviceIds)
+
+	if err != nil {
+		return err
+	}
+
+	cr := ClientRequest{
+		method:      "POST",
+		contentType: "application/json",
+		path:        fmt.Sprintf("%s/exists", objectsPath),
+		payload:     bytes,
+	}
+
+	return o.Mnubo.doRequestWithAuthentication(cr, results)
 }

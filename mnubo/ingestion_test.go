@@ -19,6 +19,11 @@ type SimpleEvent struct {
 	XEventType string `json:"x_event_type"`
 }
 
+type SimpleObject struct {
+	XDeviceID   string `json:"x_device_id"`
+	XObjectType string `json:"x_object_type"`
+}
+
 func TestEvents(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
 
@@ -164,5 +169,71 @@ func TestEvents_Exists(t *testing.T) {
 		if len(results[i]) != c.ExpectedLength {
 			t.Errorf("%d, expecting length: %d, got %d", i, c.ExpectedLength, len(results[i]))
 		}
+	}
+}
+
+func TestObjects_Create(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+	id := uuid.New().String()
+
+	o := SimpleObject{
+		XDeviceID:   id,
+		XObjectType: "rand",
+	}
+	var results interface{}
+	err := m.Objects.Create(o, &results)
+
+	if err != nil {
+		t.Errorf("client call failed: %+v", err)
+	}
+}
+
+func TestObjects_Update(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+	id := uuid.New().String()
+
+	o := []SimpleObject{
+		{
+			XDeviceID:   id,
+			XObjectType: "rand",
+		},
+	}
+	var results interface{}
+	err := m.Objects.Update(o, &results)
+
+	if err != nil {
+		t.Errorf("client call failed: %+v", err)
+	}
+}
+
+func TestObjects_Delete(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+	id := uuid.New().String()
+
+	o := SimpleObject{
+		XDeviceID:   id,
+		XObjectType: "rand",
+	}
+	var results interface{}
+	e1, e2 := m.Objects.Create(o, &results), m.Objects.Delete(id)
+
+	if e1 != nil {
+		t.Errorf("client call failed: %+v", e1)
+	}
+
+	if e2 != nil {
+		t.Errorf("client call failed: %+v", e2)
+	}
+}
+
+func TestObjects_Exist(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+	id := uuid.New().String()
+
+	var results EventsExist
+	err := m.Objects.Exist([]string{id}, &results)
+
+	if err != nil {
+		t.Errorf("client call failed: %+v", err)
 	}
 }
