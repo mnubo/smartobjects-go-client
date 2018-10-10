@@ -14,16 +14,6 @@ type SimpleQuery struct {
 	Select []SelectOperation `json:"select"`
 }
 
-type SearchResultsColumn struct {
-	Label string `json:"label"`
-	Type  string `json:"type"`
-}
-
-type SearchResults struct {
-	Columns []SearchResultsColumn `json:"columns"`
-	Rows    [][]interface{}       `json:"rows"`
-}
-
 func TestCreateQuery(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
 

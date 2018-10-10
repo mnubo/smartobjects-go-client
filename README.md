@@ -38,5 +38,39 @@ func main() {
 		Response: true, // will send "Accept-Encoding: gzip"
 	}
 	m.Compression = comp
+	
+	// Getting Datasets for querying
+	var ds []mnubo.Dataset
+	m.GetDatasets(&ds)
+	
+	// Creating a MQL
+    var results mnubo.SearchResults
+	qs := `{ "from": "event", "select": [ { "count": "*" } ] }`
+	m.CreateBasicQueryWithString(qs, &results)
+	
+	// Or if you prefer a typed structure
+	type SelectOperation struct {
+    	Count string `json:"count"`
+    }
+    type SimpleQuery struct {
+    	From   string            `json:"from"`
+    	Select []SelectOperation `json:"select"`
+    }
+	
+	q := SimpleQuery{
+		From: "event",
+		Select: []SelectOperation {
+			{
+				Count: "*",
+			},
+		},
+	}
+
+	m.CreateBasicQuery(q, &results)
+	
+	// Validate Query
+	var qv mnubo.QueryValidation
+	m.ValidateQuery(q, &qv)
+	m.ValidateQueryWithString(qs, &qv)
 }
 ```
