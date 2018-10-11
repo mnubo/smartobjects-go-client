@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -31,6 +32,7 @@ type ClientRequest struct {
 	method          string
 	path            string
 	contentType     string
+	urlQuery        url.Values
 	payload         []byte
 	skipCompression bool
 }
@@ -152,6 +154,10 @@ func (m *Mnubo) doRequest(cr ClientRequest, response interface{}) (error) {
 
 	if cr.authorization != "" {
 		req.Header.Add("Authorization", cr.authorization)
+	}
+
+	if cr.urlQuery != nil {
+		req.URL.RawQuery = cr.urlQuery.Encode()
 	}
 
 	if m.Compression.Request {
