@@ -2,7 +2,7 @@ package mnubo
 
 import (
 	"bytes"
-	gzip "compress/gzip"
+	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
