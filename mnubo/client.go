@@ -2,13 +2,14 @@ package mnubo
 
 import (
 	"bytes"
-	gzip "compress/gzip"
+	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -24,6 +25,9 @@ type Mnubo struct {
 	Host         string
 	AccessToken  AccessToken
 	Compression  CompressionConfig
+	Events       *Events
+	Objects      *Objects
+	Owners       *Owners
 }
 
 type ClientRequest struct {
@@ -31,6 +35,7 @@ type ClientRequest struct {
 	method          string
 	path            string
 	contentType     string
+	urlQuery        url.Values
 	payload         []byte
 	skipCompression bool
 }
@@ -50,18 +55,28 @@ func (at *AccessToken) hasExpired() bool {
 }
 
 func NewClient(id string, secret string, host string) *Mnubo {
-	return &Mnubo{
+	m := &Mnubo{
 		ClientId:     id,
 		ClientSecret: secret,
 		Host:         host,
 	}
+	m.initClient()
+	return m
 }
 
 func NewClientWithToken(token string, host string) *Mnubo {
-	return &Mnubo{
+	m := &Mnubo{
 		ClientToken: token,
 		Host:        host,
 	}
+	m.initClient()
+	return m
+}
+
+func (m *Mnubo) initClient() {
+	m.Events = NewEvents(*m)
+	m.Objects = NewObjects(*m)
+	m.Owners = NewOwners(*m)
 }
 
 func (m *Mnubo) isUsingStaticToken() bool {
@@ -85,11 +100,10 @@ func (m *Mnubo) GetAccessTokenWithScope(scope string) (AccessToken, error) {
 		payload:         []byte(payload),
 	}
 	at := AccessToken{}
-	body, err := m.doRequest(cr)
+	err := m.doRequest(cr, &at)
 	now := time.Now()
 
 	if err == nil {
-		err = json.Unmarshal(body, &at)
 		if err != nil {
 			return at, fmt.Errorf("unable to unmarshall body %t", err)
 		}
@@ -132,14 +146,14 @@ func doGunzip(w io.Writer, data []byte) error {
 	return nil
 }
 
-func (m *Mnubo) doRequest(cr ClientRequest) ([]byte, error) {
+func (m *Mnubo) doRequest(cr ClientRequest, response interface{}) error {
 	var payload []byte
 
 	if m.Compression.Request && !cr.skipCompression {
 		var w bytes.Buffer
 		err := doGzip(&w, cr.payload)
 		if err != nil {
-			return nil, fmt.Errorf("unable to gzip request: %t", err)
+			return fmt.Errorf("unable to gzip request: %t", err)
 		}
 		payload = w.Bytes()
 	} else {
@@ -155,6 +169,10 @@ func (m *Mnubo) doRequest(cr ClientRequest) ([]byte, error) {
 		req.Header.Add("Authorization", cr.authorization)
 	}
 
+	if cr.urlQuery != nil {
+		req.URL.RawQuery = cr.urlQuery.Encode()
+	}
+
 	if m.Compression.Request {
 		req.Header.Add("Content-Encoding", "gzip")
 	}
@@ -164,36 +182,42 @@ func (m *Mnubo) doRequest(cr ClientRequest) ([]byte, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("unable to send client request: %t", err)
+		return fmt.Errorf("unable to send client request: %t", err)
 	}
 	defer res.Body.Close()
 
 	var body []byte
 	body, err = ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read response body: %t", err)
+		return fmt.Errorf("unable to read response body: %t", err)
 	}
 	if res.Header.Get("Content-Encoding") == "gzip" {
 		var w bytes.Buffer
 		err := doGunzip(&w, body)
 
 		if err != nil {
-			return nil, fmt.Errorf("unable to gunzip response: %t", err)
+			return fmt.Errorf("unable to gunzip response: %t", err)
 		}
 
 		body = w.Bytes()
 	}
 	if res.StatusCode >= http.StatusOK && res.StatusCode < http.StatusMultipleChoices {
-		return body, nil
+		if res.Header.Get("Content-Type") == "application/json" {
+			return json.Unmarshal(body, response)
+		} else if res.Header.Get("Content-Type") == "text/plain" {
+			response = string(body)
+		}
+
+		return nil
 	}
 
-	return nil, fmt.Errorf("request Error: %s", body)
+	return fmt.Errorf("error while sending request: %+v, got response: %+v", req, res)
 }
 
 func (m *Mnubo) doRequestWithAuthentication(cr ClientRequest, response interface{}) error {
@@ -210,11 +234,7 @@ func (m *Mnubo) doRequestWithAuthentication(cr ClientRequest, response interface
 		cr.authorization = fmt.Sprintf("Bearer %s", m.AccessToken.Value)
 	}
 
-	data, err := m.doRequest(cr)
+	err := m.doRequest(cr, response)
 
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(data, response)
+	return err
 }
