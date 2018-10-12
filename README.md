@@ -41,12 +41,12 @@ func main() {
 	
 	// Getting Datasets for querying
 	var ds []mnubo.Dataset
-	m.GetDatasets(&ds)
+	m.Search.GetDatasets(&ds)
 	
 	// Creating a MQL
     var results mnubo.SearchResults
 	qs := `{ "from": "event", "select": [ { "count": "*" } ] }`
-	m.CreateBasicQueryWithString(qs, &results)
+	m.Search.CreateBasicQueryWithString(qs, &results)
 	
 	// Or if you prefer a typed structure
 	type SelectOperation struct {
@@ -57,7 +57,7 @@ func main() {
     	Select []SelectOperation `json:"select"`
     }
 	
-	q := SimpleQuery{
+	q := SimpleQuery {
 		From: "event",
 		Select: []SelectOperation {
 			{
@@ -66,11 +66,15 @@ func main() {
 		},
 	}
 
-	m.CreateBasicQuery(q, &results)
+	m.Search.CreateBasicQuery(q, &results)
 	
 	// Validate Query
 	var qv mnubo.QueryValidation
-	m.ValidateQuery(q, &qv)
-	m.ValidateQueryWithString(qs, &qv)
+	m.Search.ValidateQuery(q, &qv)
+	m.Search.ValidateQueryWithString(qs, &qv)
 }
 ```
+
+## References
+
+[mnubo documentation](https://smartobjects.mnubo.com/documentation/)

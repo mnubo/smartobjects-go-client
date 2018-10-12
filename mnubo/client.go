@@ -28,6 +28,7 @@ type Mnubo struct {
 	Events       *Events
 	Objects      *Objects
 	Owners       *Owners
+	Search       *Search
 }
 
 type ClientRequest struct {
@@ -77,6 +78,7 @@ func (m *Mnubo) initClient() {
 	m.Events = NewEvents(*m)
 	m.Objects = NewObjects(*m)
 	m.Owners = NewOwners(*m)
+	m.Search = NewSearch(*m)
 }
 
 func (m *Mnubo) isUsingStaticToken() bool {

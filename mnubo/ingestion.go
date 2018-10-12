@@ -24,6 +24,10 @@ type Owners struct {
 	Mnubo Mnubo
 }
 
+type Search struct {
+	Mnubo Mnubo
+}
+
 type SendEventsOptions struct {
 	ReportResults    bool
 	ObjectsMustExist bool
