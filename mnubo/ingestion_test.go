@@ -153,7 +153,7 @@ func TestEvents_SendFromDevice(t *testing.T) {
 func TestEvents_Exists(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
 
-	var results [1]EventsExist
+	var results [1]EntitiesExist
 
 	cases := []struct {
 		Error          error
@@ -234,7 +234,7 @@ func TestObjects_Exist(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
 	id := uuid.New().String()
 
-	var results EventsExist
+	var results EntitiesExist
 	err := m.Objects.Exist([]string{id}, &results)
 
 	if err != nil {
@@ -317,7 +317,7 @@ func TestOwners_Exist(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
 	id := uuid.New().String()
 
-	var results EventsExist
+	var results EntitiesExist
 	err := m.Owners.Exist([]string{id}, &results)
 
 	if err != nil {

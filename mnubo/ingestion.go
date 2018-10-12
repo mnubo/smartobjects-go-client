@@ -45,8 +45,8 @@ type SendEventsReport struct {
 	ObjectExists bool   `json:"objectExists"`
 }
 
-// EventsExist is an array of map useful when checking if events, objects or owners exist.
-type EventsExist []map[string]bool
+// EntitiesExist is an array of map useful when checking if events, objects or owners exist.
+type EntitiesExist []map[string]bool
 
 // ObjectOwnerPair can be used to claim and unclaim devices.
 type ObjectOwnerPair struct {
@@ -211,7 +211,7 @@ func (o *Objects) Delete(deviceId string) error {
 
 // Exists checks if an array of objects have been created.
 // See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#post-api-v3-objects-exists
-func (o *Objects) Exist(deviceIds []string, results *EventsExist) error {
+func (o *Objects) Exist(deviceIds []string, results *EntitiesExist) error {
 	bytes, err := json.Marshal(deviceIds)
 
 	if err != nil {
@@ -302,7 +302,7 @@ func (o *Owners) Delete(username string) error {
 
 // Exists checks if an array of owners exist in SmartObjects.
 // See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#get-api-v3-owners-exists-username
-func (o *Owners) Exist(usernames []string, results *EventsExist) error {
+func (o *Owners) Exist(usernames []string, results *EntitiesExist) error {
 	bytes, err := json.Marshal(usernames)
 
 	if err != nil {
