@@ -12,68 +12,82 @@ const (
 	ownersPath  = "/api/v3/owners"
 )
 
+// Events is a helper to Mnubo client which contains Events related functions.
 type Events struct {
 	Mnubo Mnubo
 }
 
+// Objects is a helper to Mnubo client which contains Objects related functions.
 type Objects struct {
 	Mnubo Mnubo
 }
 
+// Owners is a helper to Mnubo client which contains Owners related functions.
 type Owners struct {
 	Mnubo Mnubo
 }
 
+// Search is a helper to Mnubo client which contains Search related functions.
 type Search struct {
 	Mnubo Mnubo
 }
 
+// SendEventsOptions helps configure the Send events function.
 type SendEventsOptions struct {
 	ReportResults    bool
 	ObjectsMustExist bool
 }
 
+// SendEventsReport contains information when sending events with ReportResults set to true.
 type SendEventsReport struct {
 	ID           string `json:"id"`
 	Result       string `json:"result"`
 	ObjectExists bool   `json:"objectExists"`
 }
 
+// EventsExist is an array of map useful when checking if events, objects or owners exist.
 type EventsExist []map[string]bool
 
+// ObjectOwnerPair can be used to claim and unclaim devices.
 type ObjectOwnerPair struct {
 	XDeviceID string `json:"x_device_id"`
 	Username  string `json:"username"`
 }
 
+// ClaimResult contains useful information after claiming obects.
 type ClaimResult struct {
 	ID      string `json:"id"`
 	Result  string `json:"result"`
 	Message string `json:"message"`
 }
 
+// PasswordUpdatePayload helps building the update password function.
 type PasswordUpdatePayload struct {
 	XPassword string `json:"x_password"`
 }
 
+// NewEvents creates an Events wrapper for Mnubo client.
 func NewEvents(m Mnubo) *Events {
 	return &Events{
 		Mnubo: m,
 	}
 }
 
+// NewObjects creates an Objects wrapper for Mnubo client.
 func NewObjects(m Mnubo) *Objects {
 	return &Objects{
 		Mnubo: m,
 	}
 }
 
+// NewOwners creates an Owners wrapper for Mnubo client.
 func NewOwners(m Mnubo) *Owners {
 	return &Owners{
 		Mnubo: m,
 	}
 }
 
+// buildEventsClientRequest is an internal function to help send events to SmartObjects.
 func buildEventsClientRequest(events interface{}, options SendEventsOptions, path string) (ClientRequest, error) {
 	bytes, err := json.Marshal(events)
 
@@ -100,6 +114,9 @@ func buildEventsClientRequest(events interface{}, options SendEventsOptions, pat
 	}, nil
 }
 
+// Send allows to post events to SmartObjects.
+// The events payload depends on the data model.
+// See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#post-api-v3-events
 func (e *Events) Send(events interface{}, options SendEventsOptions, results interface{}) error {
 	cr, err := buildEventsClientRequest(events, options, eventsPath)
 
@@ -110,6 +127,8 @@ func (e *Events) Send(events interface{}, options SendEventsOptions, results int
 	return e.Mnubo.doRequestWithAuthentication(cr, results)
 }
 
+// SendFromDevice allows to post events to SmartObjects from one device.
+// See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#post-api-v3-objects-x-device-id-events
 func (e *Events) SendFromDevice(deviceId string, events interface{}, options SendEventsOptions, results interface{}) error {
 	cr, err := buildEventsClientRequest(events, options, fmt.Sprintf("%s/%s/events", objectsPath, deviceId))
 
@@ -120,6 +139,8 @@ func (e *Events) SendFromDevice(deviceId string, events interface{}, options Sen
 	return e.Mnubo.doRequestWithAuthentication(cr, results)
 }
 
+// Exists checks if an event has already been submitted.
+// See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#post-api-v3-events-exists
 func (e *Events) Exists(eventIds []string, results interface{}) error {
 	bytes, err := json.Marshal(eventIds)
 
@@ -137,6 +158,9 @@ func (e *Events) Exists(eventIds []string, results interface{}) error {
 	return e.Mnubo.doRequestWithAuthentication(cr, results)
 }
 
+// Create creates an object to SmartObjects.
+// The objects payload is based on the data model.
+// See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#post-api-v3-objects
 func (o *Objects) Create(objects interface{}, results interface{}) error {
 	bytes, err := json.Marshal(objects)
 
@@ -154,6 +178,8 @@ func (o *Objects) Create(objects interface{}, results interface{}) error {
 	return o.Mnubo.doRequestWithAuthentication(cr, results)
 }
 
+// Update creates and / or updates a batch of objects at once.
+// See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#put-api-v3-objects-batch
 func (o *Objects) Update(objects interface{}, results interface{}) error {
 	bytes, err := json.Marshal(objects)
 
@@ -171,6 +197,8 @@ func (o *Objects) Update(objects interface{}, results interface{}) error {
 	return o.Mnubo.doRequestWithAuthentication(cr, results)
 }
 
+// Delete deletes an object
+// See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#delete-api-v3-objects-x-device-id
 func (o *Objects) Delete(deviceId string) error {
 	cr := ClientRequest{
 		method: "DELETE",
@@ -181,6 +209,8 @@ func (o *Objects) Delete(deviceId string) error {
 	return o.Mnubo.doRequestWithAuthentication(cr, &results)
 }
 
+// Exists checks if an array of objects have been created.
+// See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#post-api-v3-objects-exists
 func (o *Objects) Exist(deviceIds []string, results *EventsExist) error {
 	bytes, err := json.Marshal(deviceIds)
 
@@ -198,6 +228,9 @@ func (o *Objects) Exist(deviceIds []string, results *EventsExist) error {
 	return o.Mnubo.doRequestWithAuthentication(cr, results)
 }
 
+// Create creates a new owner to SmartObjects.
+// The owner payload is based on the data model.
+// See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#post-api-v3-owners
 func (o *Owners) Create(owners interface{}, results interface{}) error {
 	bytes, err := json.Marshal(owners)
 
@@ -215,6 +248,8 @@ func (o *Owners) Create(owners interface{}, results interface{}) error {
 	return o.Mnubo.doRequestWithAuthentication(cr, results)
 }
 
+// Update creates and / or updates a batch of owners at once.
+// See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#put-api-v3-owners-batch
 func (o *Owners) Update(owners interface{}, results interface{}) error {
 	bytes, err := json.Marshal(owners)
 
@@ -232,6 +267,8 @@ func (o *Owners) Update(owners interface{}, results interface{}) error {
 	return o.Mnubo.doRequestWithAuthentication(cr, results)
 }
 
+// UpdateOwnerPassword updates an owner password.
+// See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#put-api-v3-owners-username-password
 func (o *Owners) UpdateOwnerPassword(username string, password string) error {
 	bytes, err := json.Marshal(PasswordUpdatePayload{
 		XPassword: password,
@@ -251,6 +288,8 @@ func (o *Owners) UpdateOwnerPassword(username string, password string) error {
 	return o.Mnubo.doRequestWithAuthentication(cr, &results)
 }
 
+// Delete deletes an owner from SmartObjects.
+// See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#delete-api-v3-owners-username
 func (o *Owners) Delete(username string) error {
 	cr := ClientRequest{
 		method: "DELETE",
@@ -261,6 +300,8 @@ func (o *Owners) Delete(username string) error {
 	return o.Mnubo.doRequestWithAuthentication(cr, &results)
 }
 
+// Exists checks if an array of owners exist in SmartObjects.
+// See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#get-api-v3-owners-exists-username
 func (o *Owners) Exist(usernames []string, results *EventsExist) error {
 	bytes, err := json.Marshal(usernames)
 
@@ -278,6 +319,8 @@ func (o *Owners) Exist(usernames []string, results *EventsExist) error {
 	return o.Mnubo.doRequestWithAuthentication(cr, results)
 }
 
+// Claim claims an array of object / owner pair.
+// See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#post-api-v3-owners-claim-batch
 func (o *Owners) Claim(pairs []ObjectOwnerPair, results *[]ClaimResult) error {
 	bytes, err := json.Marshal(pairs)
 
@@ -295,6 +338,8 @@ func (o *Owners) Claim(pairs []ObjectOwnerPair, results *[]ClaimResult) error {
 	return o.Mnubo.doRequestWithAuthentication(cr, results)
 }
 
+// Unclaim unclaims an array of object / owner pair.
+// See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#post-api-v3-owners-unclaim-batch
 func (o *Owners) Unclaim(pairs []ObjectOwnerPair, results *[]ClaimResult) error {
 	bytes, err := json.Marshal(pairs)
 
