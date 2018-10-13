@@ -75,7 +75,7 @@ func TestCompression(t *testing.T) {
 	}
 	m.Compression = compression
 
-	err := m.CreateBasicQueryWithString(`{ "from": "event", "select": [ { "count": "*" } ] }`, &results)
+	err := m.Search.CreateBasicQueryWithString(`{ "from": "event", "select": [ { "count": "*" } ] }`, &results)
 
 	if err != nil {
 		t.Errorf("error while running the query: %t", err)

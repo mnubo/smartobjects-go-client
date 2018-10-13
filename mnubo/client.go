@@ -13,11 +13,13 @@ import (
 	"time"
 )
 
+// CompressionConfig is used to compress requests and / or response to / from the SmartObjects platform.
 type CompressionConfig struct {
 	Request  bool
 	Response bool
 }
 
+// Mnubo is the main object representing all available endpoints in SmartObjects.
 type Mnubo struct {
 	ClientId     string
 	ClientSecret string
@@ -28,8 +30,10 @@ type Mnubo struct {
 	Events       *Events
 	Objects      *Objects
 	Owners       *Owners
+	Search       *Search
 }
 
+// ClientRequest is an internal structure to help with making HTTP requests to SmartObjects.
 type ClientRequest struct {
 	authorization   string
 	method          string
@@ -40,6 +44,7 @@ type ClientRequest struct {
 	skipCompression bool
 }
 
+// AccessToken represents a token obtained after validating client id and secret.
 type AccessToken struct {
 	Value     string `json:"access_token"`
 	TokenType string `json:"token_type"`
@@ -49,11 +54,13 @@ type AccessToken struct {
 	Jti       string `json:"jti"`
 }
 
+// hasExpired returns true if an access token has expired.
 func (at *AccessToken) hasExpired() bool {
 	now := time.Now()
 	return at.ExpiresAt.Before(now)
 }
 
+// NewClient creates a new Mnubo structure based on id, secret and host.
 func NewClient(id string, secret string, host string) *Mnubo {
 	m := &Mnubo{
 		ClientId:     id,
@@ -64,6 +71,7 @@ func NewClient(id string, secret string, host string) *Mnubo {
 	return m
 }
 
+// NewClientWithToken creates a new Mnubo structure based on a static token.
 func NewClientWithToken(token string, host string) *Mnubo {
 	m := &Mnubo{
 		ClientToken: token,
@@ -73,20 +81,26 @@ func NewClientWithToken(token string, host string) *Mnubo {
 	return m
 }
 
+// initClient initializes internal wrappers for SmartObjects main endpoints.
 func (m *Mnubo) initClient() {
 	m.Events = NewEvents(*m)
 	m.Objects = NewObjects(*m)
 	m.Owners = NewOwners(*m)
+	m.Search = NewSearch(*m)
 }
 
+// isUsingStaticToken returns true if the client was initialized with its own static token
+// ie: not using client id / secret.
 func (m *Mnubo) isUsingStaticToken() bool {
 	return m.ClientToken != ""
 }
 
+// GetAccessToken fetches a new AccessToken with scope ALL.
 func (m *Mnubo) GetAccessToken() (AccessToken, error) {
 	return m.GetAccessTokenWithScope("ALL")
 }
 
+// GetAccessTokenWithScope fetches a new AccessToken with specified scope.
 func (m *Mnubo) GetAccessTokenWithScope(scope string) (AccessToken, error) {
 	payload := fmt.Sprintf("grant_type=client_credentials&scope=%s", scope)
 	data := []byte(fmt.Sprintf("%s:%s", m.ClientId, m.ClientSecret))
@@ -115,6 +129,7 @@ func (m *Mnubo) GetAccessTokenWithScope(scope string) (AccessToken, error) {
 	return at, err
 }
 
+// doGzip compressed data using gzip BestSpeed algorithm.
 func doGzip(w io.Writer, data []byte) error {
 	gw, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
 	if err != nil {
@@ -132,6 +147,7 @@ func doGzip(w io.Writer, data []byte) error {
 	return nil
 }
 
+// doGunzip uncompressed gzipped data.
 func doGunzip(w io.Writer, data []byte) error {
 	gr, err := gzip.NewReader(bytes.NewBuffer(data))
 	defer gr.Close()
@@ -146,6 +162,8 @@ func doGunzip(w io.Writer, data []byte) error {
 	return nil
 }
 
+// doRequest is the main internal helper to send request to the SmartObjects platform.
+// It handles compression / decompression based on client configuration.
 func (m *Mnubo) doRequest(cr ClientRequest, response interface{}) error {
 	var payload []byte
 
@@ -220,6 +238,7 @@ func (m *Mnubo) doRequest(cr ClientRequest, response interface{}) error {
 	return fmt.Errorf("error while sending request: %+v, got response: %+v", req, res)
 }
 
+// doRequestWithAuthentication is the main helper to make requests requiring authentication.
 func (m *Mnubo) doRequestWithAuthentication(cr ClientRequest, response interface{}) error {
 	if m.isUsingStaticToken() {
 		cr.authorization = fmt.Sprintf("Bearer %s", m.ClientToken)
