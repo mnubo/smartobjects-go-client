@@ -15,6 +15,7 @@ package main
 
 import (
 	"github.com/mnubo/smartobjects-go-client/mnubo"
+	"time"
 )
 
 type SelectOperation struct {
@@ -74,6 +75,14 @@ func main() {
 		Response: true, // will send "Accept-Encoding: gzip"
 	}
 	m.Compression = comp
+
+	// Update the default timeout.
+	// The default Go http client will hang until a request has been fulfilled
+	// (potentially leaving the client hanging if the server is having issues).
+	// This setting allows to set the timeout for the client.
+	// Be careful that, when using Search module, some queries can take longer to return.
+	// Updating the timeout to a longer duration is advised for some queries.
+	m.Timeout = time.Second * 10 // The default value when creating a new client.
 
 	// Create, Update, Delete Owners
 	ow := "user@example.com"

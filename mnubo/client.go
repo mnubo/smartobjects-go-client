@@ -13,6 +13,10 @@ import (
 	"time"
 )
 
+const (
+	defaultTimeout = time.Second * 10
+)
+
 // CompressionConfig is used to compress requests and / or response to / from the SmartObjects platform.
 type CompressionConfig struct {
 	Request  bool
@@ -26,6 +30,7 @@ type Mnubo struct {
 	ClientToken  string
 	Host         string
 	AccessToken  AccessToken
+	Timeout      time.Duration // Timeout for HTTP requests sent to SmartObjects.
 	Compression  CompressionConfig
 	Events       *Events
 	Objects      *Objects
@@ -87,6 +92,7 @@ func (m *Mnubo) initClient() {
 	m.Objects = NewObjects(*m)
 	m.Owners = NewOwners(*m)
 	m.Search = NewSearch(*m)
+	m.Timeout = defaultTimeout
 }
 
 // isUsingStaticToken returns true if the client was initialized with its own static token
@@ -203,7 +209,9 @@ func (m *Mnubo) doRequest(cr ClientRequest, response interface{}) error {
 		return err
 	}
 
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: m.Timeout,
+	}
 	res, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("unable to send client request: %t", err)
