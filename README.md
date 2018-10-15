@@ -18,7 +18,6 @@ import (
 	"log"
 )
 
-// Or if you prefer a typed structure
 type SelectOperation struct {
 	Count string `json:"count"`
 }
@@ -42,7 +41,7 @@ type SimpleObject struct {
 func main() {
 	var m *mnubo.Mnubo
 	var res interface{}
-	var exist mnubo.EventsExist
+	var exist mnubo.EntitiesExist
 
 	// Creating new client with client id and secret.
 	// Get them by going to the Security app: https://smartobjects.mnubo.com/apps/security
@@ -128,6 +127,7 @@ func main() {
 		},
 	}
 
+	// Or if you prefer a typed structure
 	m.Search.CreateBasicQuery(q, &sr)
 
 	// Validate Query
