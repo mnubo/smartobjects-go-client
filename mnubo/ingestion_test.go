@@ -28,7 +28,7 @@ type SimpleOwner struct {
 	Username string `json:"username"`
 }
 
-func TestEvents(t *testing.T) {
+func TestEvents_Send(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
 
 	var results [3][]SendEventsReport
