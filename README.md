@@ -15,7 +15,6 @@ package main
 
 import (
 	"github.com/mnubo/smartobjects-go-client/mnubo"
-	"log"
 )
 
 type SelectOperation struct {
