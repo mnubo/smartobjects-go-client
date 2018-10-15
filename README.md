@@ -15,7 +15,6 @@ package main
 
 import (
 	"github.com/mnubo/smartobjects-go-client/mnubo"
-	"log"
 )
 
 type SelectOperation struct {
@@ -36,6 +35,21 @@ type SimpleObject struct {
 	XDeviceID   string `json:"x_device_id"`
 	XObjectType string `json:"x_object_type"`
 	Color       string `json:"color"`
+}
+
+type XObject struct {
+	XDeviceID string `json:"x_device_id"`
+}
+
+type EventWithObject struct {
+	XObject    XObject `json:"x_object"`
+	XEventType string  `json:"x_event_type"`
+	Speed      float32 `json:"speed"`
+}
+
+type SimpleEvent struct {
+	XEventType string  `json:"x_event_type"`
+	Speed      float32 `json:"speed"`
 }
 
 func main() {
@@ -108,6 +122,31 @@ func main() {
 	}
 	m.Owners.Claim(oop, &cr)
 	m.Owners.Unclaim(oop, &cr)
+
+	// Sending events
+	ewo := EventWithObject{
+		XObject: XObject{
+			XDeviceID: "car-1",
+		},
+		XEventType: "speed-update",
+		Speed:      65.9,
+	}
+	var re mnubo.SendEventsReport
+	seo := mnubo.SendEventsOptions{
+		ReportResults:    false, // Report details about success / failure of events
+		ObjectsMustExist: false, // Event will fail if given device does not exist
+	}
+	m.Events.Send([]EventWithObject{ewo}, seo, &re)
+
+	// Send batch of events from one device
+	e := SimpleEvent{
+		XEventType: "speed-update",
+		Speed:      65.9,
+	}
+	m.Events.SendFromDevice("car-2", []SimpleEvent{e}, seo, &re)
+
+	// Check if an array of events exist
+	m.Events.Exists([]string{"A7D81DE5-4988-4291-B53C-AC5E91C9242B"}, &exist)
 
 	// Getting Datasets for querying
 	var ds []mnubo.Dataset
