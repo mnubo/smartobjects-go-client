@@ -32,6 +32,7 @@ type Mnubo struct {
 	AccessToken  AccessToken
 	Timeout      time.Duration // Timeout for HTTP requests sent to SmartObjects.
 	Compression  CompressionConfig
+	Model        *Model
 	Events       *Events
 	Objects      *Objects
 	Owners       *Owners
@@ -88,6 +89,7 @@ func NewClientWithToken(token string, host string) *Mnubo {
 
 // initClient initializes internal wrappers for SmartObjects main endpoints.
 func (m *Mnubo) initClient() {
+	m.Model = NewModel(*m)
 	m.Events = NewEvents(*m)
 	m.Objects = NewObjects(*m)
 	m.Owners = NewOwners(*m)
@@ -243,7 +245,7 @@ func (m *Mnubo) doRequest(cr ClientRequest, response interface{}) error {
 		return nil
 	}
 
-	return fmt.Errorf("error while sending request: %+v, got response: %+v", req, res)
+	return fmt.Errorf("error while sending request: %+v, got response: %+v, with body: %s", req, res, body)
 }
 
 // doRequestWithAuthentication is the main helper to make requests requiring authentication.
