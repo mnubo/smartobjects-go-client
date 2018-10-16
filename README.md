@@ -2,6 +2,10 @@
 
 [![Build status](https://travis-ci.org/mnubo/smartobjects-go-client.svg?branch=master)](https://travis-ci.org/mnubo/smartobjects-go-client)
 
+## Prerequisites
+
+This client was built on go 1.11 but it should work on prior versions of go as well.
+
 ## Installation
 
 ```bash
