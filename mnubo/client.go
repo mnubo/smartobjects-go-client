@@ -5,7 +5,9 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/cenkalti/backoff"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -15,6 +17,8 @@ import (
 
 const (
 	defaultTimeout = time.Second * 10
+
+	DefaultBackoffMaxInterval = time.Minute * 5
 )
 
 // CompressionConfig is used to compress requests and / or response to / from the SmartObjects platform.
@@ -23,20 +27,32 @@ type CompressionConfig struct {
 	Response bool
 }
 
+// ExponentialBackoffConfig is used to configure exponential backoff.
+// You should not need to configure this, but it's available if you require further tweaking.
+type ExponentialBackoffConfig struct {
+	// After MaxElapsedTime the ExponentialBackOff stops.
+	// It never stops if MaxElapsedTime == 0.
+	MaxElapsedTime time.Duration
+	// Callback called between retries when the platform is not available.
+	// It will not be called if value is nil.
+	NotifyOnError func(error, time.Duration)
+}
+
 // Mnubo is the main object representing all available endpoints in SmartObjects.
 type Mnubo struct {
-	ClientId     string
-	ClientSecret string
-	ClientToken  string
-	Host         string
-	AccessToken  AccessToken
-	Timeout      time.Duration // Timeout for HTTP requests sent to SmartObjects.
-	Compression  CompressionConfig
-	Model        *Model
-	Events       *Events
-	Objects      *Objects
-	Owners       *Owners
-	Search       *Search
+	ClientId           string
+	ClientSecret       string
+	ClientToken        string
+	Host               string
+	AccessToken        AccessToken
+	Timeout            time.Duration // Timeout for HTTP requests sent to SmartObjects.
+	Compression        CompressionConfig
+	ExponentialBackoff ExponentialBackoffConfig
+	Model              *Model
+	Events             *Events
+	Objects            *Objects
+	Owners             *Owners
+	Search             *Search
 }
 
 // ClientRequest is an internal structure to help with making HTTP requests to SmartObjects.
@@ -58,6 +74,17 @@ type AccessToken struct {
 	ExpiresAt time.Time
 	Scope     string `json:"scope"`
 	Jti       string `json:"jti"`
+}
+
+type smartObjectsNotAvailableError struct {
+}
+
+func (e *smartObjectsNotAvailableError) Error() string {
+	return "SmartObjects platform is not available"
+}
+
+func smartObjectsNotAvailable() *smartObjectsNotAvailableError {
+	return &smartObjectsNotAvailableError{}
 }
 
 // hasExpired returns true if an access token has expired.
@@ -95,6 +122,9 @@ func (m *Mnubo) initClient() {
 	m.Owners = NewOwners(*m)
 	m.Search = NewSearch(*m)
 	m.Timeout = defaultTimeout
+	m.ExponentialBackoff = ExponentialBackoffConfig{
+		MaxElapsedTime: DefaultBackoffMaxInterval,
+	}
 }
 
 // isUsingStaticToken returns true if the client was initialized with its own static token
@@ -170,6 +200,54 @@ func doGunzip(w io.Writer, data []byte) error {
 	return nil
 }
 
+func doHttpRequest(client *http.Client, req *http.Request, response interface{}) func() error {
+	wrappedFunc := func() error {
+		res, err := client.Do(req)
+		if err != nil {
+			return backoff.Permanent(err)
+		}
+		defer res.Body.Close()
+
+		var body []byte
+		body, err = ioutil.ReadAll(res.Body)
+
+		if err != nil {
+			return backoff.Permanent(err)
+		}
+
+		if res.Header.Get("Content-Encoding") == "gzip" {
+			var w bytes.Buffer
+			err := doGunzip(&w, body)
+
+			if err != nil {
+				return backoff.Permanent(err)
+			}
+
+			body = w.Bytes()
+		}
+
+		if res.StatusCode >= http.StatusOK && res.StatusCode < http.StatusMultipleChoices {
+			if res.Header.Get("Content-Type") == "application/json" {
+				err := json.Unmarshal(body, response)
+				if err != nil {
+					return backoff.Permanent(err)
+				}
+			} else if res.Header.Get("Content-Type") == "text/plain" {
+				response = string(body)
+			}
+
+			return nil
+		} else if res.StatusCode == http.StatusServiceUnavailable {
+			return smartObjectsNotAvailable()
+		}
+
+		return backoff.Permanent(errors.New("unexpected response from the platform"))
+
+	}
+
+	return wrappedFunc
+}
+
 // doRequest is the main internal helper to send request to the SmartObjects platform.
 // It handles compression / decompression based on client configuration.
 func (m *Mnubo) doRequest(cr ClientRequest, response interface{}) error {
@@ -214,38 +292,10 @@ func (m *Mnubo) doRequest(cr ClientRequest, response interface{}) error {
 	client := &http.Client{
 		Timeout: m.Timeout,
 	}
-	res, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("unable to send client request: %t", err)
-	}
-	defer res.Body.Close()
 
-	var body []byte
-	body, err = ioutil.ReadAll(res.Body)
-	if err != nil {
-		return fmt.Errorf("unable to read response body: %t", err)
-	}
-	if res.Header.Get("Content-Encoding") == "gzip" {
-		var w bytes.Buffer
-		err := doGunzip(&w, body)
-
-		if err != nil {
-			return fmt.Errorf("unable to gunzip response: %t", err)
-		}
-
-		body = w.Bytes()
-	}
-	if res.StatusCode >= http.StatusOK && res.StatusCode < http.StatusMultipleChoices {
-		if res.Header.Get("Content-Type") == "application/json" {
-			return json.Unmarshal(body, response)
-		} else if res.Header.Get("Content-Type") == "text/plain" {
-			response = string(body)
-		}
-
-		return nil
-	}
-
-	return fmt.Errorf("error while sending request: %+v, got response: %+v, with body: %s", req, res, body)
+	b := backoff.NewExponentialBackOff()
+	b.MaxElapsedTime = m.ExponentialBackoff.MaxElapsedTime
+	return backoff.RetryNotify(doHttpRequest(client, req, response), b, m.ExponentialBackoff.NotifyOnError)
 }
 
 // doRequestWithAuthentication is the main helper to make requests requiring authentication.

@@ -129,6 +129,18 @@ func main() {
 	// Updating the timeout to a longer duration is advised for some queries.
 	m.Timeout = time.Second * 10 // The default value when creating a new client.
 
+	// Exponential backoff.
+	// You should not need to alter the default configuration.
+	// The following is available is useful if you need further tweaking in case
+	// the SmartObjects platform is not available.
+	m.ExponentialBackoff = mnubo.ExponentialBackoffConfig{
+		MaxElapsedTime: time.Hour * 2, // duration after which backoff will eventually fail
+		NotifyOnError: func(e error, duration time.Duration) {
+			// log something if you want.
+			// duration will contain the duration since the first call was tried, until now
+        },
+	}
+
 	// Creating the data model is crucial to SmartObjects.
 	// Below you can find the helpers to manipulate the data model through the client.
 
