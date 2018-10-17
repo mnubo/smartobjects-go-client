@@ -14,7 +14,7 @@ type SimpleQuery struct {
 	Select []SelectOperation `json:"select"`
 }
 
-func TestCreateQuery(t *testing.T) {
+func TestSearch_CreateBasicQuery(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
 
 	var results = [2]SearchResults{}
@@ -54,7 +54,7 @@ func TestCreateQuery(t *testing.T) {
 	}
 }
 
-func TestValidateQuery(t *testing.T) {
+func TestSearch_ValidateQuery(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
 
 	var results = [2]QueryValidation{}
@@ -94,7 +94,7 @@ func TestValidateQuery(t *testing.T) {
 	}
 }
 
-func TestDatasets(t *testing.T) {
+func TestSearch_GetDatasets(t *testing.T) {
 	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
 
 	var results = [1][]Dataset{}
