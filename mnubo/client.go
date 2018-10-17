@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	defaultTimeout = time.Second * 10
+	DefaultTimeout = time.Second * 10
 
 	DefaultBackoffMaxInterval = time.Minute * 5
 )
@@ -121,7 +121,7 @@ func (m *Mnubo) initClient() {
 	m.Objects = NewObjects(*m)
 	m.Owners = NewOwners(*m)
 	m.Search = NewSearch(*m)
-	m.Timeout = defaultTimeout
+	m.Timeout = DefaultTimeout
 	m.ExponentialBackoff = ExponentialBackoffConfig{
 		MaxElapsedTime: DefaultBackoffMaxInterval,
 	}
