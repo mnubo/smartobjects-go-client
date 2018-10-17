@@ -13,7 +13,7 @@
 <p>Below is an example of how you can install the client:</p>
 <pre>
     <code>
-go get github.com/mnubo/smartobjects-go-client
+go get github.com/mnubo/smartobjects-go-client/mnubo
     </code>
 </pre>
 
@@ -50,7 +50,7 @@ This client was built on go 1.11 but it should work on prior versions of go as w
 ## Installation
 
 ```bash
-go get github.com/mnubo/smartobjects-go-client
+go get github.com/mnubo/smartobjects-go-client/mnubo
 ```
 
 ## Usage
