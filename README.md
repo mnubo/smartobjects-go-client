@@ -2,6 +2,10 @@
 
 [![Build status](https://travis-ci.org/mnubo/smartobjects-go-client.svg?branch=master)](https://travis-ci.org/mnubo/smartobjects-go-client)
 
+## Prerequisites
+
+This client was built on go 1.11 but it should work on prior versions of go as well.
+
 ## Installation
 
 ```bash
@@ -83,6 +87,114 @@ func main() {
 	// Be careful that, when using Search module, some queries can take longer to return.
 	// Updating the timeout to a longer duration is advised for some queries.
 	m.Timeout = time.Second * 10 // The default value when creating a new client.
+
+	// Creating the data model is crucial to SmartObjects.
+	// Below you can find the helpers to manipulate the data model through the client.
+
+	// Creating / Updating / Deleting Event Types
+	et := []mnubo.EventType{
+		{
+			Key:         "Engine Run",
+			DisplayName: "Engine Run",
+			Description: "When engine is running",
+			Origin:      "rule",
+		},
+	}
+	m.Model.CreateEventTypes(et)
+	m.Model.UpdateEventType("Engine Run", mnubo.EventType{
+		DisplayName: "Engine Run",
+		Description: "The engine is running",
+	})
+	m.Model.DeleteEventType("Engine Run")
+
+	// Create, Update Timeseries
+	ts := []mnubo.Timeseries{
+		{
+			Key:           "speed",
+			Description:   "This is the speed of the car",
+			DisplayName:   "Speed",
+			EventTypeKeys: []string{"Engine Run"},
+			Type: mnubo.TimeseriesType{
+				HighLevelType: "DOUBLE",
+			},
+		},
+	}
+	m.Model.CreateTimeseries(ts)
+	m.Model.UpdateTimeseries("speed", mnubo.Timeseries{
+		Description: "This is the general speed of the car",
+		DisplayName: "Car Speed",
+	})
+
+	// To deploy a timeseries to production, you can use the main helper function:
+	m.Model.DeployTimeseriesToProduction("speed")
+
+	// Create, Update, Delete Object Types
+	ot := []mnubo.ObjectType{
+		{
+			Key:         "Car",
+			DisplayName: "Car",
+			Description: "This the car",
+		},
+	}
+	m.Model.CreateObjectTypes(ot)
+	m.Model.UpdateObjectType("Car", mnubo.ObjectType{
+		DisplayName: "Voiture",
+		Description: "Voiture is car in French",
+	})
+	m.Model.DeleteObjectType("Car")
+
+	// Create, Update Object Attributes
+	oa := []mnubo.ObjectAttribute{
+		{
+			Key:         "color",
+			DisplayName: "Color",
+			Description: "Color of attribute",
+			Type: mnubo.AttributeType{
+				HighLevelType: "TEXT",
+				ContainerType: "none",
+			},
+			ObjectTypeKeys: []string{"Car"},
+		},
+	}
+
+	m.Model.CreateObjectAttributes(oa)
+	m.Model.UpdateObjectAttribute("color", mnubo.ObjectAttribute{
+		DisplayName: "Colour",
+		Description: "Colour of attribute",
+	})
+
+	// Deploy an owner attribute to production
+	m.Model.DeployOwnerAttributeToProduction("color")
+
+	// Create, Update Owner Attributes
+	owa := []mnubo.OwnerAttribute{
+		{
+			Key:         "Age",
+			DisplayName: "Age",
+			Description: "Age of the owner",
+			Type: mnubo.AttributeType{
+				HighLevelType: "TEXT",
+				ContainerType: "none",
+			},
+		},
+	}
+
+	m.Model.CreateOwnerAttributes(owa)
+	m.Model.UpdateOwnerAttribute("age", mnubo.OwnerAttribute{
+		DisplayName: "Age",
+		Description: "The age of the owner",
+	})
+
+	// Deploy an owner attribute to production
+	m.Model.DeployOwnerAttributeToProduction("age")
+
+	// Reset the data model in sandbox
+	// Be careful with this operation as it will reset and wipe all data not pushed to production.
+	m.Model.ResetDataModel()
+
+	// Export the data model
+	var dm mnubo.DataModel
+	m.Model.Export(&dm)
 
 	// Create, Update, Delete Owners
 	ow := "user@example.com"

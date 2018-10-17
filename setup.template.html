@@ -1,0 +1,28 @@
+<h3>Getting the client library</h3>
+<p>The client library is available on <a target="_blank" href="https://github.com/mnubo/smartobjects-go-client">GitHub</a>.</p>
+
+<p>Below is an example of how you can install everything:</p>
+<pre>
+    <code>
+go get github.com/mnubo/smartobjects-go-client
+    </code>
+</pre>
+
+<h3>Create a client instance</h3>
+
+<p>The following code can be used to create an instance:</p>
+
+<pre>
+    <code>
+func main() {
+	var m *mnubo.Mnubo
+
+	// Creating new client with client id and secret.
+	// Get them by going to the Security app: https://smartobjects.mnubo.com/apps/security
+	m = mnubo.NewClient("YOUR_CLIENT_ID", "YOUR_CLIENT_SECRET", "YOUR_HOST_URL")
+	// Creating new client with a static token that you manage yourself
+	// Create one by going to the Security app: https://smartobjects.mnubo.com/apps/security
+	m = mnubo.NewClientWithToken("YOUR_STATIC_TOKEN", "YOUR_HOST_URL")
+}
+    </code>
+</pre>
