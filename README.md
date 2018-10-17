@@ -33,10 +33,10 @@ func main() {
 	var m *mnubo.Mnubo
 
 	// Creating new client with client id and secret.
-	m = mnubo.NewClient("YOUR_CLIENT_ID", "YOUR_CLIENT_SECRET", "YOUR_HOST_URL")
+	m = mnubo.NewClient("<%= clientKey %>", "<%= clientSecret %>", "<%= hostname %>")
 
 	// Creating new client with a static token that you manage yourself
-	m = mnubo.NewClientWithToken("YOUR_STATIC_TOKEN", "YOUR_HOST_URL")
+	m = mnubo.NewClientWithToken("YOUR_STATIC_TOKEN", "<%= hostname %>")
 }
     </code>
 </pre>
