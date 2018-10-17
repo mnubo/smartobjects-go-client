@@ -2,6 +2,47 @@
 
 [![Build status](https://travis-ci.org/mnubo/smartobjects-go-client.svg?branch=master)](https://travis-ci.org/mnubo/smartobjects-go-client)
 
+## Quickstart
+
+[comment]: # (Important: leave the HTML in this section)
+[comment]: # (quickstart-setup)
+
+<h3>Getting the client library</h3>
+<p>The client library is available on <a target="_blank" href="https://github.com/mnubo/smartobjects-go-client">GitHub</a>.</p>
+
+<p>Below is an example of how you can install the client:</p>
+<pre>
+    <code>
+go get github.com/mnubo/smartobjects-go-client
+    </code>
+</pre>
+
+<h3>Create a client instance</h3>
+
+<p>The following code can be used to create an instance:</p>
+
+<pre>
+    <code>
+package main
+
+import (
+	"github.com/mnubo/smartobjects-go-client/mnubo"
+)
+
+func main() {
+	var m *mnubo.Mnubo
+
+	// Creating new client with client id and secret.
+	m = mnubo.NewClient("YOUR_CLIENT_ID", "YOUR_CLIENT_SECRET", "YOUR_HOST_URL")
+
+	// Creating new client with a static token that you manage yourself
+	m = mnubo.NewClientWithToken("YOUR_STATIC_TOKEN", "YOUR_HOST_URL")
+}
+    </code>
+</pre>
+
+[comment]: # (quickstart-setup)
+
 ## Prerequisites
 
 This client was built on go 1.11 but it should work on prior versions of go as well.
