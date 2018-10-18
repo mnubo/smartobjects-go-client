@@ -2,7 +2,7 @@ language: go
 go:
 - "1.X"
 install:
-- go get github.com/google/uuid
+- go get ./...
 script:
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then .travis/run_on_non_pull_requests; fi
 - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then .travis/run_on_pull_requests; fi
