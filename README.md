@@ -131,7 +131,7 @@ func main() {
 
 	// Exponential backoff.
 	// You should not need to alter the default configuration.
-	// The following is available is useful if you need further tweaking in case
+	// The following is useful if you need further tweaking in case
 	// the SmartObjects platform is not available.
 	m.ExponentialBackoff = mnubo.ExponentialBackoffConfig{
 		MaxElapsedTime: time.Hour * 2, // duration after which backoff will eventually fail
