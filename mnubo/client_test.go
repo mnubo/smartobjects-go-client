@@ -1,6 +1,9 @@
 package mnubo
 
 import (
+	"bytes"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
@@ -83,5 +86,38 @@ func TestCompression(t *testing.T) {
 
 	if len(results.Rows) != 1 || len(results.Rows[0]) != 1 {
 		t.Errorf("expecting results to have a count in firt row and cell")
+	}
+}
+
+func TestExponentialBackoff(t *testing.T) {
+	simFailures := 4
+	var sendError = simFailures
+	var gotNotified = 0
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if sendError > 0 {
+			http.Error(w, "", http.StatusServiceUnavailable)
+			sendError--
+		} else {
+			buff := bytes.NewBufferString("{\"access_token\":\"valid\"}")
+			w.Write(buff.Bytes())
+		}
+	}))
+	defer ts.Close()
+	m.Host = ts.URL
+	m.ExponentialBackoff = ExponentialBackoffConfig{
+		MaxElapsedTime: time.Second * 5,
+		NotifyOnError: func(e error, duration time.Duration) {
+			gotNotified++
+		},
+	}
+
+	_, err := m.GetAccessToken()
+
+	if err != nil {
+		t.Errorf("unable to call client: %+v", err)
+	}
+
+	if gotNotified != simFailures {
+		t.Errorf("expecting %d failures, got notified only %d times", simFailures, gotNotified)
 	}
 }
