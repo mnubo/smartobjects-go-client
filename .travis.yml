@@ -1,6 +1,6 @@
 language: go
 go:
-- "1.X"
+- "1.11"
 install:
 - go get github.com/cenkalti/backoff
 - go get github.com/google/uuid
