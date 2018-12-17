@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -226,23 +227,23 @@ func doHttpRequest(client *http.Client, req *http.Request, response interface{})
 			body = w.Bytes()
 		}
 
-		if res.StatusCode >= http.StatusOK && res.StatusCode < http.StatusMultipleChoices {
-			if res.Header.Get("Content-Type") == "application/json" {
-				err := json.Unmarshal(body, response)
-				if err != nil {
-					return backoff.Permanent(err)
-				}
-			} else if res.Header.Get("Content-Type") == "text/plain" {
-				response = string(body)
+		ct := res.Header.Get("Content-Type")
+		if strings.Contains(ct, "application/json") {
+			err := json.Unmarshal(body, response)
+			if err != nil {
+				return backoff.Permanent(err)
 			}
+		} else if strings.Contains(ct, "text/plain") {
+			response = string(body)
+		}
 
+		if res.StatusCode >= http.StatusOK && res.StatusCode < http.StatusMultipleChoices {
 			return nil
 		} else if res.StatusCode == http.StatusServiceUnavailable {
 			return smartObjectsNotAvailable()
 		}
 
-		return backoff.Permanent(errors.New("unexpected response from the platform"))
-
+		return backoff.Permanent(errors.New(fmt.Sprintf("The server responded with StatusCode: %d - Body: %s", res.StatusCode, response)))
 	}
 
 	return wrappedFunc
