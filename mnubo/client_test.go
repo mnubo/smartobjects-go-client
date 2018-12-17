@@ -2,9 +2,11 @@ package mnubo
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -119,5 +121,26 @@ func TestExponentialBackoff(t *testing.T) {
 
 	if gotNotified != simFailures {
 		t.Errorf("expecting %d failures, got notified only %d times", simFailures, gotNotified)
+	}
+}
+
+func TestClientErrors(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "This is an error returned by the platform.", http.StatusBadRequest)
+	}))
+	defer ts.Close()
+	m.Host = ts.URL
+
+	_, err := m.GetAccessToken()
+
+	if err == nil {
+		t.Errorf("The client should bubble up the errors from the platform")
+	}
+
+	got := strings.TrimSpace(fmt.Sprintf("%s", err))
+	expect := "The server responded with StatusCode: 400 - Body: This is an error returned by the platform."
+
+	if strings.Compare(got, expect) != 0 {
+		t.Errorf("expected: '%s', got: '%s'", expect, got)
 	}
 }
