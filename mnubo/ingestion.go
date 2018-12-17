@@ -46,7 +46,7 @@ type SendEventsReport struct {
 }
 
 // EntitiesExist is an array of map useful when checking if events, objects or owners exist.
-type EntitiesExist []map[string]bool
+type EntitiesExist map[string]bool
 
 // ObjectOwnerPair can be used to claim and unclaim devices.
 type ObjectOwnerPair struct {
@@ -141,9 +141,13 @@ func (e *Events) SendFromDevice(deviceId string, events interface{}, options Sen
 
 // Exists checks if an event has already been submitted.
 // See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#post-api-v3-events-exists
-func (e *Events) Exists(eventIds []string, results interface{}) error {
-	bytes, err := json.Marshal(eventIds)
+func (e *Events) Exists(eventIds []string, results *EntitiesExist) error {
+	if *results == nil {
+		res := make(EntitiesExist)
+		results = &res
+	}
 
+	bytes, err := json.Marshal(eventIds)
 	if err != nil {
 		return err
 	}
@@ -155,7 +159,21 @@ func (e *Events) Exists(eventIds []string, results interface{}) error {
 		payload:     bytes,
 	}
 
-	return e.Mnubo.doRequestWithAuthentication(cr, results)
+	rawResults := []map[string]bool{}
+	// this endpoint returns an array of objects
+	err = e.Mnubo.doRequestWithAuthentication(cr, &rawResults)
+	if err != nil {
+		return err
+	}
+
+	// Flatten the objects so it can be easily used to check for existence
+	for _, rr := range rawResults {
+		for k, v := range rr {
+			(*results)[k] = v
+		}
+	}
+
+	return nil
 }
 
 // Create creates an object to SmartObjects.
@@ -209,11 +227,15 @@ func (o *Objects) Delete(deviceId string) error {
 	return o.Mnubo.doRequestWithAuthentication(cr, &results)
 }
 
-// Exists checks if an array of objects have been created.
+// Exist checks if an array of objects have been created.
 // See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#post-api-v3-objects-exists
 func (o *Objects) Exist(deviceIds []string, results *EntitiesExist) error {
-	bytes, err := json.Marshal(deviceIds)
+	if *results == nil {
+		res := make(EntitiesExist)
+		results = &res
+	}
 
+	bytes, err := json.Marshal(deviceIds)
 	if err != nil {
 		return err
 	}
@@ -225,7 +247,21 @@ func (o *Objects) Exist(deviceIds []string, results *EntitiesExist) error {
 		payload:     bytes,
 	}
 
-	return o.Mnubo.doRequestWithAuthentication(cr, results)
+	rawResults := []map[string]bool{}
+	// this endpoint returns an array of objects
+	err = o.Mnubo.doRequestWithAuthentication(cr, &rawResults)
+	if err != nil {
+		return err
+	}
+
+	// Flatten the objects so it can be easily used to check for existence
+	for _, rr := range rawResults {
+		for k, v := range rr {
+			(*results)[k] = v
+		}
+	}
+
+	return nil
 }
 
 // Create creates a new owner to SmartObjects.
@@ -300,11 +336,19 @@ func (o *Owners) Delete(username string) error {
 	return o.Mnubo.doRequestWithAuthentication(cr, &results)
 }
 
-// Exists checks if an array of owners exist in SmartObjects.
+// Exist checks if an array of owners exist in SmartObjects.
 // See: https://smartobjects.mnubo.com/documentation/api_ingestion.html#get-api-v3-owners-exists-username
 func (o *Owners) Exist(usernames []string, results *EntitiesExist) error {
-	bytes, err := json.Marshal(usernames)
+	// Check if results was nil
+	// Covers cases where the user create the results object with something like
+	// `var results EntitiesExist`
 
+	if *results == nil {
+		res := make(EntitiesExist)
+		results = &res
+	}
+
+	bytes, err := json.Marshal(usernames)
 	if err != nil {
 		return err
 	}
@@ -316,7 +360,21 @@ func (o *Owners) Exist(usernames []string, results *EntitiesExist) error {
 		payload:     bytes,
 	}
 
-	return o.Mnubo.doRequestWithAuthentication(cr, results)
+	rawResults := []map[string]bool{}
+	// this endpoint returns an array of objects
+	err = o.Mnubo.doRequestWithAuthentication(cr, &rawResults)
+	if err != nil {
+		return err
+	}
+
+	// Flatten the objects so it can be easily used to check for existence
+	for _, rr := range rawResults {
+		for k, v := range rr {
+			(*results)[k] = v
+		}
+	}
+
+	return nil
 }
 
 // Claim claims an array of object / owner pair.

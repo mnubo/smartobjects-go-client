@@ -1,9 +1,10 @@
 package mnubo
 
 import (
-	"github.com/google/uuid"
 	"os"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 type XObject struct {
@@ -170,8 +171,8 @@ func TestEvents_Exists(t *testing.T) {
 			t.Errorf("%d, client call failed: %+v", i, c.Error)
 		}
 
-		if len(results[i]) != c.ExpectedLength {
-			t.Errorf("%d, expecting length: %d, got %d", i, c.ExpectedLength, len(results[i]))
+		if len(results) != c.ExpectedLength {
+			t.Errorf("%d, expecting length: %d, got %d", i, c.ExpectedLength, len(results))
 		}
 	}
 }
