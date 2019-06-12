@@ -1,9 +1,10 @@
 package mnubo
 
 import (
-	"github.com/google/uuid"
 	"os"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 var m = NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
@@ -210,6 +211,12 @@ func TestModel_EventTypes(t *testing.T) {
 			}),
 		},
 		{
+			Error: m.Model.AddEventTypeRelation("event_type1", "ts_text_attribute"),
+		},
+		{
+			Error: m.Model.RemoveEventTypeRelation("event_type1", "ts_text_attribute"),
+		},
+		{
 			Error: m.Model.DeleteEventType(key),
 		},
 		{
@@ -247,6 +254,12 @@ func TestModel_ObjectTypes(t *testing.T) {
 				DisplayName: "Object Type 2",
 				Description: "Description 2",
 			}),
+		},
+		{
+			Error: m.Model.AddObjectTypeRelation("cat_detector", "object_text_attribute"),
+		},
+		{
+			Error: m.Model.RemoveObjectTypeRelation("cat_detector", "object_text_attribute"),
 		},
 		{
 			Error: m.Model.DeleteObjectType(key),

@@ -429,6 +429,30 @@ func (m *Model) DeleteEventType(key string) error {
 	return m.Mnubo.doRequestWithAuthentication(cr, &results)
 }
 
+// Add a relation to a timeseries.
+// See: https://smartobjects.mnubo.com/documentation/api_modeler.html#linking-a-timeseries-to-an-event-type
+func (m *Model) AddEventTypeRelation(typeKey string, entityKey string) error {
+	cr := ClientRequest{
+		method: "POST",
+		path:   fmt.Sprintf("%s/eventTypes/%s/timeseries/%s", modelPath, typeKey, entityKey),
+	}
+
+	var results interface{}
+	return m.Mnubo.doRequestWithAuthentication(cr, &results)
+}
+
+// Remove a relation to a timeseries.
+// See: https://smartobjects.mnubo.com/documentation/api_modeler.html#deleting-the-link-between-a-timeseries-and-an-event-type
+func (m *Model) RemoveEventTypeRelation(typeKey string, entityKey string) error {
+	cr := ClientRequest{
+		method: "DELETE",
+		path:   fmt.Sprintf("%s/eventTypes/%s/timeseries/%s", modelPath, typeKey, entityKey),
+	}
+
+	var results interface{}
+	return m.Mnubo.doRequestWithAuthentication(cr, &results)
+}
+
 // GetObjectTypes retrieves the object types of the data model.
 // See: https://smartobjects.mnubo.com/documentation/api_modeler.html#getting-all-event-types
 func (m *Model) GetObjectTypes(results *[]ObjectType) error {
@@ -486,6 +510,30 @@ func (m *Model) DeleteObjectType(key string) error {
 		method:      "DELETE",
 		contentType: "application/json",
 		path:        fmt.Sprintf("%s/objectTypes/%s", modelPath, key),
+	}
+
+	var results interface{}
+	return m.Mnubo.doRequestWithAuthentication(cr, &results)
+}
+
+// Add a relation to an object attribute.
+// See: https://smartobjects.mnubo.com/documentation/api_modeler.html#linking-an-attribute-to-an-object-type
+func (m *Model) AddObjectTypeRelation(typeKey string, entityKey string) error {
+	cr := ClientRequest{
+		method: "POST",
+		path:   fmt.Sprintf("%s/objectTypes/%s/objectAttributes/%s", modelPath, typeKey, entityKey),
+	}
+
+	var results interface{}
+	return m.Mnubo.doRequestWithAuthentication(cr, &results)
+}
+
+// Remove a relation to an object attribute.
+// See: https://smartobjects.mnubo.com/documentation/api_modeler.html#deleting-the-link-between-an-attribute-and-an-object-type
+func (m *Model) RemoveObjectTypeRelation(typeKey string, entityKey string) error {
+	cr := ClientRequest{
+		method: "DELETE",
+		path:   fmt.Sprintf("%s/objectTypes/%s/objectAttributes/%s", modelPath, typeKey, entityKey),
 	}
 
 	var results interface{}
