@@ -158,6 +158,8 @@ func main() {
 		DisplayName: "Engine Run",
 		Description: "The engine is running",
 	})
+	m.Model.AddEventTypeRelation("event_type1", "ts_text_attribute")
+	m.Model.RemoveEventTypeRelation("event_type1", "ts_text_attribute")
 	m.Model.DeleteEventType("Engine Run")
 
 	// Create, Update Timeseries
@@ -194,6 +196,8 @@ func main() {
 		DisplayName: "Voiture",
 		Description: "Voiture is car in French",
 	})
+	m.Model.AddObjectTypeRelation("cat_detector", "object_text_attribute"),
+	m.Model.RemoveObjectTypeRelation("cat_detector", "object_text_attribute"),
 	m.Model.DeleteObjectType("Car")
 
 	// Create, Update Object Attributes
