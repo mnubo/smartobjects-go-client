@@ -91,7 +91,23 @@ func TestCompression(t *testing.T) {
 	}
 }
 
+func TestClientCustomTransport(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
+
+	// setting a custom transport with impossibly small timeout
+	customTransport := &http.Transport{
+		TLSHandshakeTimeout: time.Nanosecond,
+	}
+	m.CustomTransport = customTransport
+
+	_, err := m.GetAccessToken()
+	if err == nil {
+		t.Errorf("able to get access token, despite faulty custom transport: %s", err)
+	}
+}
+
 func TestExponentialBackoff(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
 	simFailures := 4
 	var sendError = simFailures
 	var gotNotified = 0
@@ -125,6 +141,7 @@ func TestExponentialBackoff(t *testing.T) {
 }
 
 func TestClientErrors(t *testing.T) {
+	m := NewClient(os.Getenv("MNUBO_CLIENT_ID"), os.Getenv("MNUBO_CLIENT_SECRET"), os.Getenv("MNUBO_HOST"))
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "This is an error returned by the platform.", http.StatusBadRequest)
 	}))

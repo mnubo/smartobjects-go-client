@@ -54,6 +54,7 @@ type Mnubo struct {
 	Objects            *Objects
 	Owners             *Owners
 	Search             *Search
+	CustomTransport    *http.Transport
 }
 
 // ClientRequest is an internal structure to help with making HTTP requests to SmartObjects.
@@ -117,11 +118,11 @@ func NewClientWithToken(token string, host string) *Mnubo {
 
 // initClient initializes internal wrappers for SmartObjects main endpoints.
 func (m *Mnubo) initClient() {
-	m.Model = NewModel(*m)
-	m.Events = NewEvents(*m)
-	m.Objects = NewObjects(*m)
-	m.Owners = NewOwners(*m)
-	m.Search = NewSearch(*m)
+	m.Model = NewModel(m)
+	m.Events = NewEvents(m)
+	m.Objects = NewObjects(m)
+	m.Owners = NewOwners(m)
+	m.Search = NewSearch(m)
 	m.Timeout = DefaultTimeout
 	m.ExponentialBackoff = ExponentialBackoffConfig{
 		MaxElapsedTime: DefaultBackoffMaxInterval,
@@ -292,6 +293,9 @@ func (m *Mnubo) doRequest(cr ClientRequest, response interface{}) error {
 
 	client := &http.Client{
 		Timeout: m.Timeout,
+	}
+	if m.CustomTransport != nil {
+		client.Transport = m.CustomTransport
 	}
 
 	b := backoff.NewExponentialBackOff()

@@ -14,22 +14,22 @@ const (
 
 // Events is a helper to Mnubo client which contains Events related functions.
 type Events struct {
-	Mnubo Mnubo
+	Mnubo *Mnubo
 }
 
 // Objects is a helper to Mnubo client which contains Objects related functions.
 type Objects struct {
-	Mnubo Mnubo
+	Mnubo *Mnubo
 }
 
 // Owners is a helper to Mnubo client which contains Owners related functions.
 type Owners struct {
-	Mnubo Mnubo
+	Mnubo *Mnubo
 }
 
 // Search is a helper to Mnubo client which contains Search related functions.
 type Search struct {
-	Mnubo Mnubo
+	Mnubo *Mnubo
 }
 
 // SendEventsOptions helps configure the Send events function.
@@ -67,21 +67,21 @@ type PasswordUpdatePayload struct {
 }
 
 // NewEvents creates an Events wrapper for Mnubo client.
-func NewEvents(m Mnubo) *Events {
+func NewEvents(m *Mnubo) *Events {
 	return &Events{
 		Mnubo: m,
 	}
 }
 
 // NewObjects creates an Objects wrapper for Mnubo client.
-func NewObjects(m Mnubo) *Objects {
+func NewObjects(m *Mnubo) *Objects {
 	return &Objects{
 		Mnubo: m,
 	}
 }
 
 // NewOwners creates an Owners wrapper for Mnubo client.
-func NewOwners(m Mnubo) *Owners {
+func NewOwners(m *Mnubo) *Owners {
 	return &Owners{
 		Mnubo: m,
 	}
