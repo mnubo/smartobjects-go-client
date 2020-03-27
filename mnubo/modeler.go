@@ -11,7 +11,7 @@ const (
 
 // Model is a helper to Mnubo client which contains Model related functions.
 type Model struct {
-	Mnubo Mnubo
+	Mnubo *Mnubo
 }
 
 type AttributeType struct {
@@ -87,7 +87,7 @@ type DataModel struct {
 	ReservedEnrichersFields []string            `json:"reservedEnrichersFields,omitempty"`
 }
 
-func NewModel(m Mnubo) *Model {
+func NewModel(m *Mnubo) *Model {
 	return &Model{
 		Mnubo: m,
 	}

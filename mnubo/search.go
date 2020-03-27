@@ -44,7 +44,7 @@ type SearchResults struct {
 }
 
 // NewSearch creates a Search wrapper for Mnubo client.
-func NewSearch(m Mnubo) *Search {
+func NewSearch(m *Mnubo) *Search {
 	return &Search{
 		Mnubo: m,
 	}

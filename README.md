@@ -367,6 +367,10 @@ root@4d7a461e5fbc:/workspaces/smartobjects-go-client# cd mnubo/
 root@4d7a461e5fbc:/workspaces/smartobjects-go-client# /usr/local/go/bin/go test -timeout 30s
 ```
 
+## Multithreading Warning
+
+This library is not optimized or tested for multi threaded usage. The client is *NOT* fully thread safe.
+
 ## References
 
 [mnubo documentation](https://smartobjects.mnubo.com/documentation/)
